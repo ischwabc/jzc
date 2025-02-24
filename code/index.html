@@ -39,56 +39,175 @@
     </div>
     
     <div class="output-section">
-        <textarea id="outputText" placeholder="结果将显示在这里..." readonly></textarea>
+        <div class="output-wrapper">
+            <textarea id="outputText" placeholder="结果将显示在这里..." readonly></textarea>
+            <button class="copy-btn" onclick="copyOutput()">
+                <span class="copy-text">复制</span>
+            </button>
+        </div>
     </div>
 </div>
 
 <style>
 .crypto-container {
     max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    border-radius: 8px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: var(--bg-color);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    box-sizing: border-box;
 }
 
 .input-section, .output-section {
-    margin: 15px 0;
+    margin: 1rem 0;
+    width: 100%;
+}
+
+.output-wrapper {
+    position: relative;
+    width: 100%;
 }
 
 textarea {
     width: 100%;
     height: 150px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: 1rem;
+    background: var(--secondary-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     resize: vertical;
-    font-size: 16px;
+    font-size: 1rem;
+    line-height: 1.6;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.2);
 }
 
 .button-section {
-    text-align: center;
-    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
 }
 
 button {
-    padding: 10px 30px;
-    margin: 0 10px;
-    font-size: 16px;
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 4px;
-    transition: background-color 0.3s;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    min-width: 120px;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: var(--link-hover-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.copy-btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary-color);
+    font-size: 0.9rem;
+    min-width: auto;
+    opacity: 0.9;
+    z-index: 1;
+}
+
+.copy-btn:hover {
+    opacity: 1;
+}
+
+.copy-text.copied {
+    color: #48bb78;
 }
 
 #outputText {
-    background-color: #f9f9f9;
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+}
+
+@media (max-width: 768px) {
+    .crypto-container {
+        margin: 1rem;
+        padding: 1rem;
+        width: calc(100% - 2rem);
+    }
+
+    textarea {
+        height: 120px;
+        font-size: 0.95rem;
+        padding: 0.75rem;
+    }
+
+    .button-section {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0;
+    }
+
+    button {
+        width: 100%;
+        padding: 0.75rem;
+        margin: 0;
+    }
+
+    .copy-btn {
+        position: static;
+        margin-top: 0.75rem;
+        width: 100%;
+    }
+
+    .output-wrapper {
+        flex-direction: column;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .crypto-container {
+        background: var(--secondary-bg);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    
+    textarea {
+        background: var(--bg-color);
+        border-color: var(--border-color);
+    }
+    
+    textarea:focus {
+        box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3);
+    }
+
+    button {
+        background-color: var(--primary-color);
+    }
+
+    button:hover {
+        background-color: var(--link-hover-color);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .copy-text.copied {
+        color: #68d391;
+    }
 }
 </style>
 
@@ -100,7 +219,6 @@ function encrypt() {
         return;
     }
     try {
-        // 使用 Base64 进行加密
         const encoded = btoa(unescape(encodeURIComponent(input)));
         document.getElementById('outputText').value = encoded;
     } catch (e) {
@@ -115,12 +233,29 @@ function decrypt() {
         return;
     }
     try {
-        // 使用 Base64 进行解密
         const decoded = decodeURIComponent(escape(atob(input)));
         document.getElementById('outputText').value = decoded;
     } catch (e) {
         alert('解密失败：请确保输入的是有效的加密文本！');
     }
+}
+
+function copyOutput() {
+    const outputText = document.getElementById('outputText');
+    const copyBtn = document.querySelector('.copy-btn .copy-text');
+    
+    outputText.select();
+    document.execCommand('copy');
+    
+    // 显示复制成功提示
+    copyBtn.textContent = '已复制';
+    copyBtn.classList.add('copied');
+    
+    // 2秒后恢复原样
+    setTimeout(() => {
+        copyBtn.textContent = '复制';
+        copyBtn.classList.remove('copied');
+    }, 2000);
 }
 </script>
  
